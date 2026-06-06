@@ -116,16 +116,22 @@ def calculate_sonar_metrics(state: SonarState):
     
     cumulative_divergence += divergence
     
-    # Detect Status
-    status = "LOOPING"
+    # --- DETECT STATUS ---
+    # Unified with Section 3.3 of the paper: Rupture if D_o < tau OR Stasis Indicators == True
+    stasis_indicators = False  # Placeholder for Boolean Violation Flags / Grounding Checks
+    
     if cycle >= MAX_CYCLES: 
         status = "GREEN_LANE"
-    elif divergence < RUPTURE_THRESHOLD:
-        # If mode is 'ABLATED', we IGNORE the low divergence (Control Group)
+        
+    elif divergence < RUPTURE_THRESHOLD or stasis_indicators == True:
+        # The Ablated control group suppresses homeostatic regulation and forces stasis
         if state.get("mode") == "ABLATED":
             status = "LOOPING" 
         else:
             status = "RUPTURE_TRIGGERED"
+            
+    else:
+        status = "LOOPING"
 
     print(f"\n>>> CYCLE {cycle} METRICS: Do = {divergence:.4f} | Cumulative = {cumulative_divergence:.4f}")
 
